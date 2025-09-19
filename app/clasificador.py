@@ -262,8 +262,19 @@ def create_download_zip(image_dir, annotations_data, format_type="both"):
 
 def main():
     st.set_page_config(page_title="Clasificador de Imágenes con Bounding Box", layout="wide")
+
+    # ================= ALERTA DE REFRESCO/CIERRE =================
+    import streamlit.components.v1 as components
+    components.html("""
+    <script>
+    window.onbeforeunload = function() {
+        return "⚠️ Estás a punto de salir o refrescar. ¿Seguro que quieres continuar?";
+    };
+    </script>
+    """, height=0, width=0)
+    # =============================================================
     
-    st.title("🖼️ Clasificador de Imágenes con Bounding Box")
+    st.title("Clasificador de Imágenes con Bounding Box")
     st.markdown("---")
     
     # Inicialización de session state
@@ -531,6 +542,10 @@ def main():
                 key="download_all"
             )
             st.success("✅ Todas las anotaciones han sido guardadas")
+
+    # Botón para refrescar bounding boxes
+    if st.button("🔄 Recargar Bounding Boxes"):
+        st.session_state.last_processed_image = None
     
     # Imagen actual
     current_file = st.session_state.files[st.session_state.image_index]
