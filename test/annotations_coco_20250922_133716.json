@@ -63,25 +63,25 @@
   ],
   "annotations": [
     {
-      "id": 67,
+      "id": 20,
       "image_id": 1,
-      "category_id": 2,
+      "category_id": 1,
       "bbox": [
-        47,
-        143,
+        302,
+        362,
         103,
-        103
+        66
       ],
-      "area": 10609,
+      "area": 6798,
       "iscrowd": 0
     },
     {
-      "id": 68,
+      "id": 21,
       "image_id": 2,
-      "category_id": 2,
+      "category_id": 1,
       "bbox": [
-        97,
-        274,
+        219,
+        222,
         104,
         50
       ],
@@ -89,157 +89,139 @@
       "iscrowd": 0
     },
     {
-      "id": 69,
-      "image_id": 2,
-      "category_id": 2,
-      "bbox": [
-        255,
-        225,
-        45,
-        52
-      ],
-      "area": 2340,
-      "iscrowd": 0
-    },
-    {
-      "id": 70,
+      "id": 22,
       "image_id": 3,
       "category_id": 1,
       "bbox": [
-        84,
-        114,
-        104,
-        39
+        385,
+        223,
+        35,
+        51
       ],
-      "area": 4056,
+      "area": 1785,
       "iscrowd": 0
     },
     {
-      "id": 71,
+      "id": 23,
       "image_id": 4,
       "category_id": 1,
       "bbox": [
-        22,
-        138,
-        47,
-        182
+        40,
+        17,
+        226,
+        64
       ],
-      "area": 8554,
+      "area": 14464,
       "iscrowd": 0
     },
     {
-      "id": 72,
+      "id": 24,
       "image_id": 5,
       "category_id": 1,
       "bbox": [
-        64,
-        148,
-        133,
-        47
+        77,
+        141,
+        115,
+        43
       ],
-      "area": 6251,
+      "area": 4945,
       "iscrowd": 0
     },
     {
-      "id": 73,
+      "id": 25,
       "image_id": 6,
       "category_id": 1,
       "bbox": [
-        68,
-        42,
-        104,
-        51
+        203,
+        87,
+        85,
+        235
       ],
-      "area": 5304,
+      "area": 19975,
       "iscrowd": 0
     },
     {
-      "id": 74,
+      "id": 26,
       "image_id": 7,
       "category_id": 1,
       "bbox": [
-        98,
-        175,
-        172,
-        32
+        67,
+        166,
+        241,
+        48
       ],
-      "area": 5504,
+      "area": 11568,
       "iscrowd": 0
     },
     {
-      "id": 75,
+      "id": 27,
       "image_id": 8,
       "category_id": 1,
       "bbox": [
-        178,
-        65,
-        65,
+        204,
+        14,
+        49,
         104
       ],
-      "area": 6760,
+      "area": 5096,
       "iscrowd": 0
     },
     {
-      "id": 76,
-      "image_id": 8,
-      "category_id": 1,
-      "bbox": [
-        89,
-        334,
-        217,
-        49
-      ],
-      "area": 10633,
-      "iscrowd": 0
-    },
-    {
-      "id": 77,
+      "id": 28,
       "image_id": 9,
       "category_id": 1,
       "bbox": [
-        123,
-        68,
-        211,
-        57
+        76,
+        71,
+        103,
+        48
       ],
-      "area": 12027,
+      "area": 4944,
       "iscrowd": 0
     },
     {
-      "id": 78,
-      "image_id": 10,
-      "category_id": 2,
+      "id": 29,
+      "image_id": 9,
+      "category_id": 1,
       "bbox": [
-        108,
-        196,
-        104,
-        104
+        191,
+        56,
+        173,
+        76
       ],
-      "area": 10816,
+      "area": 13148,
       "iscrowd": 0
     },
     {
-      "id": 79,
+      "id": 30,
       "image_id": 10,
-      "category_id": 2,
+      "category_id": 1,
       "bbox": [
-        357,
-        92,
-        104,
-        104
+        90,
+        107,
+        202,
+        68
       ],
-      "area": 10816,
+      "area": 13736,
+      "iscrowd": 0
+    },
+    {
+      "id": 31,
+      "image_id": 10,
+      "category_id": 1,
+      "bbox": [
+        205,
+        3,
+        48,
+        103
+      ],
+      "area": 4944,
       "iscrowd": 0
     }
   ],
   "categories": [
     {
       "id": 1,
-      "name": "Default Label",
-      "supercategory": ""
-    },
-    {
-      "id": 2,
       "name": "Stenosis",
       "supercategory": ""
     }

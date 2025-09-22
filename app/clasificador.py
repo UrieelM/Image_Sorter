@@ -260,190 +260,129 @@ def create_download_zip(image_dir, annotations_data, format_type="both"):
     zip_buffer.seek(0)
     return zip_buffer.getvalue()
 
-def main():
-    st.set_page_config(page_title="Clasificador de Imágenes con Bounding Box", layout="wide")
+def initialize_session_state():
+    """Inicializa las variables de session_state si no existen."""
+    defaults = {
+        "temp_dir": None,
+        "files": [],
+        "annotation_files": [],
+        "image_index": 0,
+        "custom_labels": ["Default Label"],
+        "coco_manager": COCOAnnotationManager(),
+        "unsaved_changes": False,
+        "current_rects": [],
+        "last_processed_image": None
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
-    # ================= ALERTA DE REFRESCO/CIERRE =================
-    import streamlit.components.v1 as components
-    components.html("""
-    <script>
-    window.onbeforeunload = function() {
-        return "⚠️ Estás a punto de salir o refrescar. ¿Seguro que quieres continuar?";
-    };
-    </script>
-    """, height=0, width=0)
-    # =============================================================
-    
-    st.title("Clasificador de Imágenes con Bounding Box")
-    st.markdown("---")
-    
-    # Inicialización de session state
-    if "temp_dir" not in st.session_state:
-        st.session_state.temp_dir = None
-    if "files" not in st.session_state:
-        st.session_state.files = []
-    if "annotation_files" not in st.session_state:
-        st.session_state.annotation_files = []
-    if "image_index" not in st.session_state:
-        st.session_state.image_index = 0
-    if "custom_labels" not in st.session_state:
-        st.session_state.custom_labels = ["Default Label"]
-    if "coco_manager" not in st.session_state:
-        st.session_state.coco_manager = COCOAnnotationManager()
-    if "unsaved_changes" not in st.session_state:
-        st.session_state.unsaved_changes = False
-    if "current_rects" not in st.session_state:
-        st.session_state.current_rects = []
-    if "last_processed_image" not in st.session_state:
-        st.session_state.last_processed_image = None
-    
-    # Sidebar para configuración
-    with st.sidebar:
-        st.header("⚙️ Configuración")
-        
-        # Subir archivo ZIP
-        uploaded_zip = st.file_uploader(
-            "Subir ZIP con imágenes", 
-            type=['zip'],
-            help="Sube un archivo ZIP que contenga las imágenes a clasificar"
+def save_current_changes_if_needed():
+    """Guarda cambios temporales antes de navegar o cambiar imagen."""
+    if st.session_state.last_processed_image and st.session_state.current_rects is not None:
+        current_file = st.session_state.last_processed_image
+        img_path = os.path.join(st.session_state.temp_dir, current_file)
+        img = Image.open(img_path)
+        st.session_state.coco_manager.add_or_update_image_annotations(
+            current_file, img.width, img.height, st.session_state.current_rects
         )
-        
-        if uploaded_zip is not None:
-            if st.button("📁 Cargar Imágenes"):
-                with st.spinner("Extrayendo imágenes..."):
-                    # Limpiar directorio anterior si existe
-                    if st.session_state.temp_dir and os.path.exists(st.session_state.temp_dir):
-                        shutil.rmtree(st.session_state.temp_dir)
-                    
-                    st.session_state.temp_dir = extract_zip_to_temp(uploaded_zip)
-                    
-                    # Cargar archivos
-                    idm = ImageDirManager(st.session_state.temp_dir)
-                    st.session_state.files = sorted(idm.get_all_files())
-                    
-                    # Verificar archivos XML existentes
-                    st.session_state.annotation_files = []
-                    for file in st.session_state.files:
-                        xml_file = os.path.splitext(file)[0] + ".xml"
-                        xml_path = os.path.join(st.session_state.temp_dir, xml_file)
-                        if os.path.exists(xml_path):
-                            st.session_state.annotation_files.append(xml_file)
-                            # Cargar anotaciones XML al COCO manager
-                            annotations = load_xml_annotation(xml_path)
-                            if annotations:
-                                # Obtener dimensiones de la imagen
-                                img_path = os.path.join(st.session_state.temp_dir, file)
-                                img = Image.open(img_path)
-                                st.session_state.coco_manager.add_or_update_image_annotations(
-                                    file, img.width, img.height, annotations
+        save_xml_annotation(img_path, current_file, st.session_state.current_rects, img.width, img.height)
+        xml_filename = os.path.splitext(current_file)[0] + ".xml"
+        if st.session_state.current_rects and xml_filename not in st.session_state.annotation_files:
+            st.session_state.annotation_files.append(xml_filename)
+        elif not st.session_state.current_rects and xml_filename in st.session_state.annotation_files:
+            st.session_state.annotation_files.remove(xml_filename)
+
+def sidebar_config():
+    st.image("src/grafico4.png", use_column_width=True)
+    st.header("⚙️ Configuración")
+    uploaded_zip = st.file_uploader(
+        "Subir ZIP con imágenes", 
+        type=['zip'],
+        help="Sube un archivo ZIP que contenga las imágenes a clasificar"
+    )
+    if uploaded_zip is not None:
+        if st.button("📁 Cargar Imágenes"):
+            with st.spinner("Extrayendo imágenes..."):
+                if st.session_state.temp_dir and os.path.exists(st.session_state.temp_dir):
+                    shutil.rmtree(st.session_state.temp_dir)
+                st.session_state.temp_dir = extract_zip_to_temp(uploaded_zip)
+                idm = ImageDirManager(st.session_state.temp_dir)
+                st.session_state.files = sorted(idm.get_all_files())
+                st.session_state.annotation_files = []
+                for file in st.session_state.files:
+                    xml_file = os.path.splitext(file)[0] + ".xml"
+                    xml_path = os.path.join(st.session_state.temp_dir, xml_file)
+                    if os.path.exists(xml_path):
+                        st.session_state.annotation_files.append(xml_file)
+                        annotations = load_xml_annotation(xml_path)
+                        if annotations:
+                            img_path = os.path.join(st.session_state.temp_dir, file)
+                            img = Image.open(img_path)
+                            st.session_state.coco_manager.add_or_update_image_annotations(
+                                file, img.width, img.height, annotations
+                            )
+                st.session_state.image_index = 0
+                st.session_state.current_rects = []
+                st.session_state.last_processed_image = None
+            st.success(f"✅ Cargadas {len(st.session_state.files)} imágenes")
+            st.rerun()
+    st.subheader("📋 Cargar Anotaciones")
+    uploaded_annotations = st.file_uploader(
+        "Cargar archivo COCO JSON", 
+        type=['json'],
+        help="Cargar anotaciones existentes en formato COCO"
+    )
+    if uploaded_annotations is not None:
+        if st.button("📥 Cargar Anotaciones"):
+            try:
+                coco_data = json.load(uploaded_annotations)
+                st.session_state.coco_manager.load_from_json(coco_data)
+                labels = [cat["name"] for cat in coco_data["categories"]]
+                if labels:
+                    st.session_state.custom_labels = labels
+                if st.session_state.temp_dir:
+                    for img_info in coco_data["images"]:
+                        filename = img_info["file_name"]
+                        annotations = st.session_state.coco_manager.get_annotations_for_image(filename)
+                        if annotations:
+                            img_path = os.path.join(st.session_state.temp_dir, filename)
+                            if os.path.exists(img_path):
+                                save_xml_annotation(
+                                    img_path, filename, annotations,
+                                    img_info["width"], img_info["height"]
                                 )
-                    
-                    st.session_state.image_index = 0
-                    st.session_state.current_rects = []
-                    st.session_state.last_processed_image = None
-                    
-                st.success(f"✅ Cargadas {len(st.session_state.files)} imágenes")
+                                xml_filename = os.path.splitext(filename)[0] + ".xml"
+                                if xml_filename not in st.session_state.annotation_files:
+                                    st.session_state.annotation_files.append(xml_filename)
+                st.success("✅ Anotaciones cargadas correctamente")
                 st.rerun()
-        
-        # Cargar anotaciones existentes
-        st.subheader("📋 Cargar Anotaciones")
-        uploaded_annotations = st.file_uploader(
-            "Cargar archivo COCO JSON", 
-            type=['json'],
-            help="Cargar anotaciones existentes en formato COCO"
-        )
-        
-        if uploaded_annotations is not None:
-            if st.button("📥 Cargar Anotaciones"):
-                try:
-                    coco_data = json.load(uploaded_annotations)
-                    st.session_state.coco_manager.load_from_json(coco_data)
-                    
-                    # Extraer labels únicos
-                    labels = [cat["name"] for cat in coco_data["categories"]]
-                    if labels:
-                        st.session_state.custom_labels = labels
-                    
-                    # Crear archivos XML desde las anotaciones COCO para visualización
-                    if st.session_state.temp_dir:
-                        for img_info in coco_data["images"]:
-                            filename = img_info["file_name"]
-                            annotations = st.session_state.coco_manager.get_annotations_for_image(filename)
-                            if annotations:
-                                img_path = os.path.join(st.session_state.temp_dir, filename)
-                                if os.path.exists(img_path):
-                                    save_xml_annotation(
-                                        img_path, filename, annotations,
-                                        img_info["width"], img_info["height"]
-                                    )
-                                    xml_filename = os.path.splitext(filename)[0] + ".xml"
-                                    if xml_filename not in st.session_state.annotation_files:
-                                        st.session_state.annotation_files.append(xml_filename)
-                    
-                    st.success("✅ Anotaciones cargadas correctamente")
+            except Exception as e:
+                st.error(f"❌ Error al cargar anotaciones: {str(e)}")
+    st.markdown("---")
+    st.subheader("🏷️ Etiquetas Personalizadas")
+    st.write("**Etiquetas actuales:**")
+    for i, label in enumerate(st.session_state.custom_labels):
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.text(f"• {label}")
+        with col2:
+            if st.button("🗑️", key=f"del_{i}", help="Eliminar etiqueta"):
+                if len(st.session_state.custom_labels) > 1:
+                    st.session_state.custom_labels.pop(i)
                     st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Error al cargar anotaciones: {str(e)}")
-        
-        st.markdown("---")
-        
-        # Configuración de etiquetas
-        st.subheader("🏷️ Etiquetas Personalizadas")
-        
-        # Mostrar etiquetas actuales
-        st.write("**Etiquetas actuales:**")
-        for i, label in enumerate(st.session_state.custom_labels):
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.text(f"• {label}")
-            with col2:
-                if st.button("🗑️", key=f"del_{i}", help="Eliminar etiqueta"):
-                    if len(st.session_state.custom_labels) > 1:
-                        st.session_state.custom_labels.pop(i)
-                        st.rerun()
-                    else:
-                        st.warning("Debe mantener al menos una etiqueta")
-        
-        # Agregar nueva etiqueta
-        new_label = st.text_input("Nueva etiqueta:")
-        if st.button("➕ Agregar Etiqueta"):
-            if new_label and new_label not in st.session_state.custom_labels:
-                st.session_state.custom_labels.append(new_label)
-                st.success(f"Etiqueta '{new_label}' agregada")
-                st.rerun()
-            elif new_label in st.session_state.custom_labels:
-                st.warning("Esta etiqueta ya existe")
-    
-    # Contenido principal
-    if not st.session_state.files:
-        st.info("👆 Por favor, sube un archivo ZIP con imágenes para comenzar")
-        return
-    
-    # Función para guardar cambios temporales antes de navegar
-    def save_current_changes_if_needed():
-        if st.session_state.last_processed_image and st.session_state.current_rects:
-            current_file = st.session_state.last_processed_image
-            img_path = os.path.join(st.session_state.temp_dir, current_file)
-            
-            # Obtener dimensiones de imagen original
-            img = Image.open(img_path)
-            
-            # Guardar en COCO manager (memoria)
-            st.session_state.coco_manager.add_or_update_image_annotations(
-                current_file, img.width, img.height, st.session_state.current_rects
-            )
-            
-            # Guardar XML para persistencia
-            save_xml_annotation(img_path, current_file, st.session_state.current_rects, img.width, img.height)
-            
-            # Actualizar lista de archivos anotados
-            xml_filename = os.path.splitext(current_file)[0] + ".xml"
-            if st.session_state.current_rects and xml_filename not in st.session_state.annotation_files:
-                st.session_state.annotation_files.append(xml_filename)
-            elif not st.session_state.current_rects and xml_filename in st.session_state.annotation_files:
-                st.session_state.annotation_files.remove(xml_filename)
-    
-    # Estadísticas
+                else:
+                    st.warning("Debe mantener al menos una etiqueta")
+    new_label = st.text_input("Nueva etiqueta:")
+    if st.button("➕ Agregar Etiqueta"):
+        if new_label and new_label not in st.session_state.custom_labels:
+            st.session_state.custom_labels.append(new_label)
+            st.success(f"Etiqueta '{new_label}' agregada")
+            st.rerun()
+        elif new_label in st.session_state.custom_labels:
+            st.warning("Esta etiqueta ya existe")
+
+def show_stats():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Total de imágenes", len(st.session_state.files))
@@ -453,12 +392,9 @@ def main():
         st.metric("Pendientes", len(st.session_state.files) - len(st.session_state.annotation_files))
     with col4:
         st.metric("Imagen actual", st.session_state.image_index + 1)
-    
-    st.markdown("---")
-    
-    # Navegación
+
+def navigation_controls():
     col1, col2, col3, col4, col5 = st.columns(5)
-    
     with col1:
         if st.button("⬅️ Anterior"):
             if st.session_state.image_index > 0:
@@ -468,7 +404,6 @@ def main():
                 st.rerun()
             else:
                 st.warning("Esta es la primera imagen")
-    
     with col2:
         if st.button("➡️ Siguiente"):
             if st.session_state.image_index < len(st.session_state.files) - 1:
@@ -478,11 +413,9 @@ def main():
                 st.rerun()
             else:
                 st.warning("Esta es la última imagen")
-    
     with col3:
         if st.button("⏭️ Siguiente sin anotar"):
             save_current_changes_if_needed()
-            # Buscar próxima imagen sin anotar
             found = False
             for i in range(st.session_state.image_index + 1, len(st.session_state.files)):
                 file = st.session_state.files[i]
@@ -494,9 +427,7 @@ def main():
                     break
             if not found:
                 st.info("Todas las imágenes restantes están anotadas")
-    
     with col4:
-        # Selector de imagen
         selected_index = st.selectbox(
             "Ir a imagen:",
             range(len(st.session_state.files)),
@@ -509,13 +440,9 @@ def main():
             st.session_state.image_index = selected_index
             st.session_state.unsaved_changes = False
             st.rerun()
-    
     with col5:
-        # Guardar todo y descargar
         if st.button("💾 Guardar Todo"):
             save_current_changes_if_needed()
-            
-            # Guardar todas las anotaciones en COCO manager
             for file in st.session_state.files:
                 xml_file = os.path.splitext(file)[0] + ".xml"
                 xml_path = os.path.join(st.session_state.temp_dir, xml_file)
@@ -527,7 +454,6 @@ def main():
                         st.session_state.coco_manager.add_or_update_image_annotations(
                             file, img.width, img.height, annotations
                         )
-            
             zip_data = create_download_zip(
                 st.session_state.temp_dir, 
                 st.session_state.coco_manager,
@@ -543,30 +469,41 @@ def main():
             )
             st.success("✅ Todas las anotaciones han sido guardadas")
 
-    # Botón para refrescar bounding boxes
+def main():
+    st.set_page_config(page_title="Clasificador de Imágenes con Bounding Box", layout="wide")
+    import streamlit.components.v1 as components
+    components.html("""
+    <script>
+    window.onbeforeunload = function() {
+        return "⚠️ Estás a punto de salir o refrescar. ¿Seguro que quieres continuar?";
+    };
+    </script>
+    """, height=0, width=0)
+    st.title("Clasificador de Imágenes con Bounding Box")
+    st.markdown("---")
+    initialize_session_state()
+    with st.sidebar:
+        sidebar_config()
+    if not st.session_state.files:
+        st.info("👆 Por favor, sube un archivo ZIP con imágenes para comenzar")
+        return
+    show_stats()
+    st.markdown("---")
+    navigation_controls()
     if st.button("🔄 Recargar Bounding Boxes"):
         st.session_state.last_processed_image = None
-    
-    # Imagen actual
     current_file = st.session_state.files[st.session_state.image_index]
     img_path = os.path.join(st.session_state.temp_dir, current_file)
-    
     st.subheader(f"🖼️ {current_file}")
-    
-    # Cargar imagen
     im = ImageManager(img_path)
     img = im.get_img()
     resized_img = im.resizing_img()
-    
-    # Cargar anotaciones para la imagen actual
-    if st.session_state.last_processed_image != current_file:
-        # Nueva imagen, cargar sus anotaciones
+    col_left, col_center, col_right = st.columns([1,2,1])
+    with col_center:
+        # Siempre sincronizar current_rects con el COCO manager al cambiar de imagen o tras cargar COCO
         annotations = st.session_state.coco_manager.get_annotations_for_image(current_file)
-        
-        # Convertir anotaciones a formato para st_img_label con coordenadas ajustadas
         scale_x = resized_img.width / img.width
         scale_y = resized_img.height / img.height
-        
         st.session_state.current_rects = []
         for ann in annotations:
             st.session_state.current_rects.append({
@@ -576,12 +513,9 @@ def main():
                 "height": int(ann["height"] * scale_y),
                 "label": ann.get("label", "Default Label")
             })
-        
         st.session_state.last_processed_image = current_file
         st.session_state.unsaved_changes = False
-    
-    # Herramienta de anotación
-    rects = st_img_label(resized_img, box_color="red", rects=st.session_state.current_rects, key=f"img_label_{current_file}")
+        rects = st_img_label(resized_img, box_color="red", rects=st.session_state.current_rects, key=f"img_label_{current_file}")
     
     # Detectar cambios
     if rects != st.session_state.current_rects:
