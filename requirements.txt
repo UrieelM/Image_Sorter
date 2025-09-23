@@ -2,3 +2,6 @@ streamlit==1.32.0
 streamlit-img-label==0.1.1
 Pillow==10.4.0
 pascal-voc-writer==0.1.4
+
+# libreria de prueba para pdf
+reportlab==4.2.0
