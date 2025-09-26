@@ -63,7 +63,7 @@
   ],
   "annotations": [
     {
-      "id": 176,
+      "id": 416,
       "image_id": 1,
       "category_id": 1,
       "bbox": [
@@ -77,7 +77,7 @@
       "comment": "Aqu\u00ed se visualiza la arteria coronaria izquierda con una estenosis del 70%."
     },
     {
-      "id": 177,
+      "id": 417,
       "image_id": 1,
       "category_id": 1,
       "bbox": [
@@ -88,10 +88,10 @@
       ],
       "area": 4326,
       "iscrowd": 0,
-      "comment": "texto"
+      "comment": "Aqu\u00ed se visualiza la arteria coronaria izquierda con una estenosis del 70%."
     },
     {
-      "id": 178,
+      "id": 418,
       "image_id": 2,
       "category_id": 1,
       "bbox": [
@@ -105,7 +105,7 @@
       "comment": "Bounding box se\u00f1alando una obstrucci\u00f3n moderada (\u224850%) en la arteria circunfleja."
     },
     {
-      "id": 179,
+      "id": 419,
       "image_id": 2,
       "category_id": 1,
       "bbox": [
@@ -119,7 +119,7 @@
       "comment": "Regi\u00f3n marcada muestra estenosis cr\u00edtica (\u224890%) en la coronaria derecha."
     },
     {
-      "id": 180,
+      "id": 420,
       "image_id": 3,
       "category_id": 1,
       "bbox": [
@@ -133,7 +133,7 @@
       "comment": "\u00c1rea delimitada corresponde a una lesi\u00f3n leve (\u224830%) en la arteria descendente anterior."
     },
     {
-      "id": 181,
+      "id": 421,
       "image_id": 3,
       "category_id": 1,
       "bbox": [
@@ -144,10 +144,10 @@
       ],
       "area": 9792,
       "iscrowd": 0,
-      "comment": "texto"
+      "comment": "\u00c1rea delimitada corresponde a una lesi\u00f3n leve (\u224830%) en la arteria descendente anterior."
     },
     {
-      "id": 182,
+      "id": 422,
       "image_id": 4,
       "category_id": 1,
       "bbox": [
@@ -161,7 +161,7 @@
       "comment": "Bounding box indica reducci\u00f3n luminal severa (\u224885%) en la arteria circunfleja."
     },
     {
-      "id": 183,
+      "id": 423,
       "image_id": 4,
       "category_id": 1,
       "bbox": [
@@ -172,10 +172,10 @@
       ],
       "area": 11900,
       "iscrowd": 0,
-      "comment": "texto"
+      "comment": "texto_modificadoBounding box indica reducci\u00f3n luminal severa (\u224885%) en la arteria circunfleja."
     },
     {
-      "id": 184,
+      "id": 424,
       "image_id": 5,
       "category_id": 1,
       "bbox": [
@@ -189,7 +189,7 @@
       "comment": "Aqu\u00ed se observa estrechamiento cr\u00edtico (\u224895%) en la coronaria derecha media."
     },
     {
-      "id": 185,
+      "id": 425,
       "image_id": 5,
       "category_id": 1,
       "bbox": [
@@ -203,7 +203,7 @@
       "comment": "\u00c1rea en bounding box muestra obstrucci\u00f3n leve (\u224825%) en la arteria circunfleja distal."
     },
     {
-      "id": 186,
+      "id": 426,
       "image_id": 6,
       "category_id": 1,
       "bbox": [
@@ -217,7 +217,7 @@
       "comment": "Regi\u00f3n delimitada corresponde a estenosis del 70% en la arteria descendente anterior media."
     },
     {
-      "id": 187,
+      "id": 427,
       "image_id": 6,
       "category_id": 1,
       "bbox": [
@@ -231,7 +231,7 @@
       "comment": "Bounding box identificando una lesi\u00f3n calcificada con estrechamiento \u224860%."
     },
     {
-      "id": 188,
+      "id": 428,
       "image_id": 7,
       "category_id": 1,
       "bbox": [
@@ -245,7 +245,7 @@
       "comment": "\u00c1rea se\u00f1alada corresponde a estenosis cr\u00edtica (\u224890%) en la descendente anterior proximal."
     },
     {
-      "id": 189,
+      "id": 429,
       "image_id": 7,
       "category_id": 1,
       "bbox": [
@@ -256,10 +256,10 @@
       ],
       "area": 10080,
       "iscrowd": 0,
-      "comment": "texto"
+      "comment": "\u00c1rea se\u00f1alada corresponde a estenosis cr\u00edtica (\u224890%) en la descendente anterior proximal."
     },
     {
-      "id": 190,
+      "id": 430,
       "image_id": 8,
       "category_id": 1,
       "bbox": [
@@ -273,7 +273,7 @@
       "comment": "Bounding box sobre la circunfleja proximal con estenosis del 75%."
     },
     {
-      "id": 191,
+      "id": 431,
       "image_id": 8,
       "category_id": 1,
       "bbox": [
@@ -284,10 +284,10 @@
       ],
       "area": 4060,
       "iscrowd": 0,
-      "comment": "texto"
+      "comment": "Bounding box sobre la circunfleja proximal con estenosis del 75%."
     },
     {
-      "id": 192,
+      "id": 432,
       "image_id": 9,
       "category_id": 1,
       "bbox": [
@@ -301,7 +301,7 @@
       "comment": "Aqu\u00ed se observa una obstrucci\u00f3n grave (\u224885%) en la arteria coronaria izquierda principal."
     },
     {
-      "id": 193,
+      "id": 433,
       "image_id": 9,
       "category_id": 1,
       "bbox": [
@@ -315,7 +315,7 @@
       "comment": "Bounding box mostrando estenosis leve (\u224815%) en la arteria circunfleja."
     },
     {
-      "id": 194,
+      "id": 434,
       "image_id": 10,
       "category_id": 1,
       "bbox": [
@@ -329,7 +329,7 @@
       "comment": "Regi\u00f3n se\u00f1alada con estenosis del 65% en la arteria descendente anterior proximal."
     },
     {
-      "id": 195,
+      "id": 435,
       "image_id": 10,
       "category_id": 1,
       "bbox": [
@@ -347,16 +347,6 @@
     {
       "id": 1,
       "name": "Stenosis",
-      "supercategory": ""
-    },
-    {
-      "id": 2,
-      "name": "",
-      "supercategory": ""
-    },
-    {
-      "id": 3,
-      "name": null,
       "supercategory": ""
     }
   ]
