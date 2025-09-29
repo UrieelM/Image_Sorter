@@ -45,7 +45,6 @@ class COCOAnnotationManager:
         """Agregar o actualizar anotaciones para una imagen específica"""
         # Buscar si la imagen ya existe
         image_id = self.get_image_id_by_filename(filename)
-        
         if image_id is None:
             # Crear nueva imagen
             image_info = {
@@ -81,8 +80,11 @@ class COCOAnnotationManager:
                 "category_id": category_id,
                 "bbox": [x, y, w, h],
                 "area": w * h,
-                "iscrowd": 0
+                "iscrowd": 0,
             }
+            # Agregar comentario si existe
+            if "comment" in ann:
+                annotation["comment"] = ann["comment"]
             self.coco_data["annotations"].append(annotation)
             self.annotation_id_counter += 1
 
@@ -93,12 +95,10 @@ class COCOAnnotationManager:
         """Obtener anotaciones para una imagen específica"""
         if filename in self.image_annotations:
             return self.image_annotations[filename]
-        
         # Buscar en COCO data
         image_id = self.get_image_id_by_filename(filename)
         if image_id is None:
             return []
-
         annotations = []
         for ann in self.coco_data["annotations"]:
             if ann["image_id"] == image_id:
@@ -108,16 +108,17 @@ class COCOAnnotationManager:
                     if cat["id"] == ann["category_id"]:
                         category_name = cat["name"]
                         break
-                
                 x, y, w, h = ann["bbox"]
-                annotations.append({
+                annotation = {
                     "label": category_name,
                     "left": x,
                     "top": y,
                     "width": w,
                     "height": h
-                })
-        
+                }
+                if "comment" in ann:
+                    annotation["comment"] = ann["comment"]
+                annotations.append(annotation)
         self.image_annotations[filename] = annotations
         return annotations
 
@@ -169,7 +170,10 @@ def save_xml_annotation(img_path, filename, annotations, img_width, img_height):
         obj = ET.SubElement(root, "object")
         name = ET.SubElement(obj, "name")
         name.text = ann["label"]
-        
+        # Guardar comentario si existe
+        if "comment" in ann:
+            comment_elem = ET.SubElement(obj, "comment")
+            comment_elem.text = ann["comment"]
         bndbox = ET.SubElement(obj, "bndbox")
         xmin = ET.SubElement(bndbox, "xmin")
         xmin.text = str(int(ann["left"]))
@@ -199,20 +203,22 @@ def load_xml_annotation(xml_path):
     for obj in root.findall("object"):
         name = obj.find("name").text
         bndbox = obj.find("bndbox")
-        
         left = int(bndbox.find("xmin").text)
         top = int(bndbox.find("ymin").text)
         right = int(bndbox.find("xmax").text)
         bottom = int(bndbox.find("ymax").text)
-        
-        annotations.append({
+        ann = {
             "label": name,
             "left": left,
             "top": top,
             "width": right - left,
             "height": bottom - top
-        })
-    
+        }
+        # Leer comentario si existe (para compatibilidad futura)
+        comment_elem = obj.find("comment")
+        if comment_elem is not None:
+            ann["comment"] = comment_elem.text
+        annotations.append(ann)
     return annotations
 
 def extract_zip_to_temp(uploaded_zip):
@@ -506,38 +512,88 @@ def main():
         scale_y = resized_img.height / img.height
         st.session_state.current_rects = []
         for ann in annotations:
-            st.session_state.current_rects.append({
+            rect = {
                 "left": int(ann["left"] * scale_x),
                 "top": int(ann["top"] * scale_y),
                 "width": int(ann["width"] * scale_x),
                 "height": int(ann["height"] * scale_y),
                 "label": ann.get("label", "Default Label")
-            })
+            }
+            if "comment" in ann:
+                rect["comment"] = ann["comment"]
+            st.session_state.current_rects.append(rect)
         st.session_state.last_processed_image = current_file
         st.session_state.unsaved_changes = False
         rects = st_img_label(resized_img, box_color="red", rects=st.session_state.current_rects, key=f"img_label_{current_file}")
     
     # Detectar cambios
     if rects != st.session_state.current_rects:
-        st.session_state.current_rects = rects
+        # Intentar mantener comentarios y etiquetas asociadas a los bounding boxes más cercanos
+        prev_rects = st.session_state.current_rects
+        new_rects = rects.copy()
+        # Para cada nuevo rect, buscar el anterior más cercano y copiar el comentario y label si existen
+        def rect_distance(r1, r2):
+            # Distancia euclidiana entre centros + diferencia de área
+            cx1 = r1["left"] + r1["width"] / 2
+            cy1 = r1["top"] + r1["height"] / 2
+            cx2 = r2["left"] + r2["width"] / 2
+            cy2 = r2["top"] + r2["height"] / 2
+            area1 = r1["width"] * r1["height"]
+            area2 = r2["width"] * r2["height"]
+            return ((cx1-cx2)**2 + (cy1-cy2)**2)**0.5 + abs(area1-area2)**0.5
+
+        used = set()
+        for i, new_r in enumerate(new_rects):
+            min_dist = float('inf')
+            min_j = None
+            for j, old_r in enumerate(prev_rects):
+                if j in used:
+                    continue
+                dist = rect_distance(new_r, old_r)
+                if dist < min_dist:
+                    min_dist = dist
+                    min_j = j
+            if min_j is not None and min_dist < 50:  # Umbral razonable
+                # Copiar comentario y etiqueta si existen
+                if "comment" in prev_rects[min_j]:
+                    new_rects[i]["comment"] = prev_rects[min_j]["comment"]
+                if "label" in prev_rects[min_j] and prev_rects[min_j]["label"] not in (None, "None", ""):
+                    new_rects[i]["label"] = prev_rects[min_j]["label"]
+                else:
+                    new_rects[i]["label"] = st.session_state.custom_labels[0] if st.session_state.custom_labels else "Default Label"
+                used.add(min_j)
+            else:
+                # Si no hay match cercano, asegurar que tenga un label válido
+                if ("label" not in new_r) or (new_r["label"] in (None, "None", "")):
+                    new_rects[i]["label"] = st.session_state.custom_labels[0] if st.session_state.custom_labels else "Default Label"
+
+        # Validar y limpiar rectángulos inválidos (ancho/alto <= 0) y etiquetas
+        cleaned_rects = []
+        for r in new_rects:
+            if r["width"] > 0 and r["height"] > 0:
+                if ("label" not in r) or (r["label"] in (None, "None", "")):
+                    r["label"] = st.session_state.custom_labels[0] if st.session_state.custom_labels else "Default Label"
+                cleaned_rects.append(r)
+        st.session_state.current_rects = cleaned_rects
+        st.session_state.current_rects = new_rects
         st.session_state.unsaved_changes = True
-        
         # Auto-guardar cambios temporales (sin rerun para evitar bucles)
-        if rects:
+        if cleaned_rects:
             # Convertir coordenadas de vuelta al tamaño original
             scale_x = img.width / resized_img.width
             scale_y = img.height / resized_img.height
-            
             original_annotations = []
-            for rect in rects:
-                original_annotations.append({
+            for rect in cleaned_rects:
+                ann = {
                     "label": rect.get("label", "Default Label"),
                     "left": rect["left"] * scale_x,
                     "top": rect["top"] * scale_y,
                     "width": rect["width"] * scale_x,
                     "height": rect["height"] * scale_y
-                })
-            
+                }
+                if "comment" in rect:
+                    ann["comment"] = rect["comment"]
+                original_annotations.append(ann)
             # Guardar temporalmente (en memoria)
             st.session_state.coco_manager.image_annotations[current_file] = original_annotations
         else:
@@ -547,46 +603,68 @@ def main():
     
     # Interfaz de etiquetado
     if st.session_state.current_rects:
-        st.subheader("🏷️ Asignar Etiquetas")
-        
+        st.subheader("🏷️ Asignar Etiquetas y Comentarios")
         for i, rect in enumerate(st.session_state.current_rects):
-            col1, col2 = st.columns([1, 2])
-            
+            col1, col2, col3 = st.columns([1, 2, 3])
             with col1:
                 # Mostrar miniatura del área seleccionada
                 try:
                     scale_x = img.width / resized_img.width
                     scale_y = img.height / resized_img.height
-                    
                     left = int(rect["left"] * scale_x)
                     top = int(rect["top"] * scale_y)
                     right = int((rect["left"] + rect["width"]) * scale_x)
                     bottom = int((rect["top"] + rect["height"]) * scale_y)
-                    
                     cropped = img.crop((left, top, right, bottom))
                     cropped.thumbnail((150, 150))
                     st.image(cropped, caption=f"Área {i+1}")
                 except:
                     st.text(f"Área {i+1}")
-            
             with col2:
                 current_label = rect.get("label", "Default Label")
                 default_index = 0
                 if current_label in st.session_state.custom_labels:
                     default_index = st.session_state.custom_labels.index(current_label)
-                
                 selected_label = st.selectbox(
                     f"Etiqueta para área {i+1}:",
                     st.session_state.custom_labels,
                     index=default_index,
                     key=f"label_select_{current_file}_{i}"
                 )
-                
                 # Actualizar etiqueta si cambió
                 if selected_label != current_label:
                     st.session_state.current_rects[i]["label"] = selected_label
                     st.session_state.unsaved_changes = True
-                    # No hacer rerun aquí para evitar bucles
+            with col3:
+                comment = rect.get("comment", "")
+                new_comment = st.text_input(
+                    f"Comentario para área {i+1} (opcional):",
+                    value=comment,
+                    key=f"comment_input_{current_file}_{i}"
+                )
+                if new_comment != comment:
+                    st.session_state.current_rects[i]["comment"] = new_comment
+                    st.session_state.unsaved_changes = True
+                    # Guardar automáticamente solo el comentario (como guardar imagen actual, pero solo para comentarios)
+                    # Convertir coordenadas a tamaño original
+                    scale_x = img.width / resized_img.width
+                    scale_y = img.height / resized_img.height
+                    final_annotations = []
+                    for rect2 in st.session_state.current_rects:
+                        ann = {
+                            "label": rect2.get("label", "Default Label"),
+                            "left": rect2["left"] * scale_x,
+                            "top": rect2["top"] * scale_y,
+                            "width": rect2["width"] * scale_x,
+                            "height": rect2["height"] * scale_y
+                        }
+                        if "comment" in rect2:
+                            ann["comment"] = rect2["comment"]
+                        final_annotations.append(ann)
+                    st.session_state.coco_manager.add_or_update_image_annotations(
+                        current_file, img.width, img.height, final_annotations
+                    )
+                    save_xml_annotation(img_path, current_file, final_annotations, img.width, img.height)
     
     # Botones de acción
     col1, col2, col3 = st.columns(3)
@@ -600,13 +678,16 @@ def main():
                 
                 final_annotations = []
                 for rect in st.session_state.current_rects:
-                    final_annotations.append({
+                    ann = {
                         "label": rect.get("label", "Default Label"),
                         "left": rect["left"] * scale_x,
                         "top": rect["top"] * scale_y,
                         "width": rect["width"] * scale_x,
                         "height": rect["height"] * scale_y
-                    })
+                    }
+                    if "comment" in rect:
+                        ann["comment"] = rect["comment"]
+                    final_annotations.append(ann)
                 
                 # Guardar en COCO manager y XML
                 st.session_state.coco_manager.add_or_update_image_annotations(
