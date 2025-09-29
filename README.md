@@ -26,9 +26,29 @@ Herramienta web para clasificación y anotación de imágenes con bounding boxes
 
 ## Instalación
 
-Aplicación completamente web. Accede desde tu navegador a la URL proporcionada.
+### Clonar el repositorio
 
-**Configuración recomendada del navegador:**
+```bash
+git clone https://github.com/tu-usuario/jilab.git
+cd jilab
+```
+
+### Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+### Ejecutar la aplicación
+
+```bash
+streamlit run app/clasificador.py
+```
+
+La aplicación se abrirá automáticamente en tu navegador en `http://localhost:8501`
+
+### Configuración recomendada del navegador
+
 - Chrome/Edge: Habilitar cookies y almacenamiento local en Configuración → Privacidad y seguridad
 - Firefox: Permitir cookies en Preferencias → Privacidad y seguridad
 - Safari: Desactivar "Evitar seguimiento entre sitios" si hay problemas
@@ -153,39 +173,11 @@ Las imágenes aparecerán con sus bounding boxes, etiquetas y comentarios intact
 
 ## Licencia
 
-Copyright (c) 2025 Uriel Mendoza Rodríguez
-
-Este proyecto está licenciado bajo la Licencia MIT - ver detalles abajo.
+MIT License - Copyright (c) 2025 Uriel Mendoza Rodríguez
 
 ### Atribuciones
 
-Este proyecto utiliza código de la librería [streamlit-img-label](https://github.com/lit26/streamlit-img-label) creada por **Tianning Li (lit26)**, licenciada bajo MIT License.
-
-Agradecimientos especiales a Tianning Li por su trabajo en streamlit-img-label, que sirvió como base para el desarrollo de JiLab.
-
-### Licencia MIT
-
-```
-Copyright (c) 2025 Uriel Mendoza Rodríguez
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+Este proyecto utiliza código de [streamlit-img-label](https://github.com/lit26/streamlit-img-label) por **Tianning Li (lit26)**, bajo MIT License.
 
 ---
 
