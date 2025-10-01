@@ -42,7 +42,7 @@ pip install -r requirements.txt
 ### Ejecutar la aplicación
 
 ```bash
-streamlit run app/OllinTag.py
+streamlit run OllinTag.py
 ```
 
 La aplicación se abrirá automáticamente en tu navegador en `http://localhost:8501`
