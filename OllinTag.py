@@ -300,7 +300,7 @@ def save_current_changes_if_needed():
             st.session_state.annotation_files.remove(xml_filename)
 
 def sidebar_config():
-    st.image("src/grafico4.png", use_column_width=True)
+    st.image("src/grafico4.png", width='stretch')
     st.header("⚙️ Configuración")
     uploaded_zip = st.file_uploader(
         "Subir ZIP con imágenes", 
