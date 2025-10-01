@@ -1,4 +1,4 @@
-# JiLab - Guided Image Label
+# OllinTag - Guided Image Label
 
 Herramienta web para clasificación y anotación de imágenes con bounding boxes y etiquetas personalizadas. Compatible con formato COCO JSON para entrenamiento de modelos de visión computarizada.
 
@@ -29,8 +29,8 @@ Herramienta web para clasificación y anotación de imágenes con bounding boxes
 ### Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/jilab.git
-cd jilab
+git clone https://github.com/tu-usuario/OllinTag.git
+cd OllinTag
 ```
 
 ### Instalar dependencias
