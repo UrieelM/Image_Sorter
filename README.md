@@ -29,8 +29,8 @@ Herramienta web para clasificación y anotación de imágenes con bounding boxes
 ### Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/OllinTag.git
-cd OllinTag
+git clone https://github.com/UrieelM/Image_Sorter.git
+cd Image_Sorter
 ```
 
 ### Instalar dependencias
@@ -42,7 +42,7 @@ pip install -r requirements.txt
 ### Ejecutar la aplicación
 
 ```bash
-streamlit run app/clasificador.py
+streamlit run app/OllinTag.py
 ```
 
 La aplicación se abrirá automáticamente en tu navegador en `http://localhost:8501`
