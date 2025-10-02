@@ -476,7 +476,7 @@ def navigation_controls():
             st.success("✅ Todas las anotaciones han sido guardadas")
 
 def main():
-    st.set_page_config(page_title="Clasificador de Imágenes con Bounding Box", layout="wide")
+    st.set_page_config(page_title="OllinTag: Etiquetas en movimiento", layout="wide")
     import streamlit.components.v1 as components
     components.html("""
     <script>
