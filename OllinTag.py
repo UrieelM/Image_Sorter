@@ -485,7 +485,7 @@ def main():
     };
     </script>
     """, height=0, width=0)
-    st.title("Clasificador de Imágenes con Bounding Box")
+    st.title("OllinTag: Etiquetas en movimiento")
     st.markdown("---")
     initialize_session_state()
     with st.sidebar:
